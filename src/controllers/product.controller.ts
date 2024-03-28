@@ -1,18 +1,21 @@
 import { NextFunction , Request , Response } from "express"
 import { logger } from "../utils/logger"
 import { createProductValidation } from "../validation/product-validation"
+import { getProductService } from "../services/product.services"
 
-export const getProductController = (req: Request , res: Response , next: NextFunction) => {
-    const products = [
-        { name: 'Sepatu', price: 200000 },
-        { name: 'Kaos', price: 100000 },
-        { name: 'Jaket', price: 300000 },
-    ]
+interface ProductType {
+    product_id: String
+    name: String
+    price: Number
+    size: String
+}
+export const getProductController = async (req: Request , res: Response , next: NextFunction) => {
+    const products:any = await getProductService()
 
     const {name} = req.params
 
     if (name) {
-        const filterProduct = products.filter((product) => {
+        const filterProduct = products.filter((product : ProductType) => {
             if (product.name === name) {
             return product
             }
