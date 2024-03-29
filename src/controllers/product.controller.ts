@@ -1,42 +1,42 @@
 import { NextFunction , Request , Response } from "express"
 import { logger } from "../utils/logger"
 import { createProductValidation } from "../validation/product-validation"
-import { getProductService } from "../services/product.services"
+import { createProductService, getProductByIdService, getProductService } from "../services/product.services"
+import {v4 as uuidv4} from 'uuid'
 
-interface ProductType {
-    product_id: String
-    name: String
-    price: Number
-    size: String
-}
 export const getProductController = async (req: Request , res: Response , next: NextFunction) => {
-    const products:any = await getProductService()
+    const {id} = req.params
 
-    const {name} = req.params
-
-    if (name) {
-        const filterProduct = products.filter((product : ProductType) => {
-            if (product.name === name) {
-            return product
-            }
-        })  
-        if (filterProduct.length === 0) {
-            logger.info('Data not found')
-            return res.status(404).send({ status: false, statusCode: 404, data: {} })
+    if (id) {
+        const product = await getProductByIdService(id)
+        if (product) {
+            logger.info('Success get product data by id')
+            return res.status(200).send({ status: true, statusCode: 200, data: product })
+        }else {
+            logger.info('Product not found')
+            return res.status(400).send({ status: false, statusCode: 400, message: 'Product not found' })
         }
+    }else {
+        const products = await getProductService()
         logger.info('Success get product data')
-        return res.status(200).send({ status: true, statusCode: 200, data: filterProduct[0] })
-        }
-    logger.info("request /product")
-    res.status(200).json({status : true , statusCode: 200 ,data: products})
+        return res.status(200).send({ status: true, statusCode: 200, data: products })
+    }
 }
 
-export const createProductController = (req: Request , res: Response , next: NextFunction) => {
+export const createProductController = async (req: Request , res: Response , next: NextFunction) => {
+    req.body.product_id = uuidv4()
     const {error , value} = createProductValidation(req.body)
     if (error) {
-        logger.error("post product failed")
-        res.status(400).json({status : false , statusCode: 400 ,message: error.message , data: {}})
+        logger.error('ERR: product - create = ', error.details[0].message)
+        res.status(400).json({status : false , statusCode: 400 ,message: error.details[0].message})
     }
-    logger.info("post product success")
-    res.status(200).json({status : true , statusCode: 200 ,message: "create product success" , data: value})
+
+    try {
+        await createProductService(value)
+        logger.info("create product success")
+        res.status(200).json({status : true , statusCode: 200 ,message: "create product success" , data: value})
+    } catch (error) {
+        logger.error('ERR: product - create = ', error)
+        res.status(400).json({status : false , statusCode: 400 ,message: error})
+    }
 }
