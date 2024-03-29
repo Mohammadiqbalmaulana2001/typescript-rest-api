@@ -19,8 +19,14 @@ export const createProductService = async (payload: ProductType) => {
 }
 
 export const updateProductService = async (id: string, payload: ProductType) =>{
-    return await productModel.findOneAndUpdate(
+    const result = await productModel.findOneAndUpdate(
         {product_id: id},
         {$set: payload},
     )
+    return result
 } 
+
+export const deleteProductService = async (id: string) => {
+    const result = await productModel.findOneAndDelete({product_id: id})
+    return result
+}

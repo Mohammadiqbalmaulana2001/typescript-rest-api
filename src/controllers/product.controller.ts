@@ -1,7 +1,7 @@
 import { NextFunction , Request , Response } from "express"
 import { logger } from "../utils/logger"
 import { createProductValidation, updateProductValidation } from "../validation/product-validation"
-import { createProductService, getProductByIdService, getProductService, updateProductService } from "../services/product.services"
+import { createProductService, deleteProductService, getProductByIdService, getProductService, updateProductService } from "../services/product.services"
 import {v4 as uuidv4} from 'uuid'
 
 export const getProductController = async (req: Request , res: Response , next: NextFunction) => {
@@ -51,11 +51,32 @@ export const updateProductController = async (req: Request , res: Response , nex
     }
 
     try {
-        await updateProductService(id , value)
-        logger.info("update product success")
-        res.status(200).json({status : true , statusCode: 200 ,message: "update product success" , data: value})
+        const result = await updateProductService(id , value)
+        if(result) {
+            logger.info("update product success")
+            res.status(200).json({status : true , statusCode: 200 ,message: "update product success" , data: value})
+        }else {
+            logger.info("product not found")
+            res.status(400).json({status : false , statusCode: 400 ,message: "product not found"})
+        }
     } catch (error) {
         logger.error('ERR: product - update = ', error)
         res.status(400).json({status : false , statusCode: 400 ,message: error})
+    }
+}
+
+export const deleteProductController = async (req: Request , res: Response , next: NextFunction) => {
+    const {id} = req.params
+    try {
+        const result = await deleteProductService(id)
+        if(result) {
+            logger.info("delete product success")
+            res.status(200).json({status : true , statusCode: 200 ,message: "delete product success"})
+        }else {
+            logger.info("product not found")
+            res.status(400).json({status : false , statusCode: 400 ,message: "product not found"})
+        }
+    } catch (error) {
+        logger.error('ERR: product - delete = ', error)
     }
 }
