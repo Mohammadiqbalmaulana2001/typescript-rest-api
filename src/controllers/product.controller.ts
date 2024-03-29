@@ -1,7 +1,7 @@
 import { NextFunction , Request , Response } from "express"
 import { logger } from "../utils/logger"
-import { createProductValidation } from "../validation/product-validation"
-import { createProductService, getProductByIdService, getProductService } from "../services/product.services"
+import { createProductValidation, updateProductValidation } from "../validation/product-validation"
+import { createProductService, getProductByIdService, getProductService, updateProductService } from "../services/product.services"
 import {v4 as uuidv4} from 'uuid'
 
 export const getProductController = async (req: Request , res: Response , next: NextFunction) => {
@@ -37,6 +37,25 @@ export const createProductController = async (req: Request , res: Response , nex
         res.status(200).json({status : true , statusCode: 200 ,message: "create product success" , data: value})
     } catch (error) {
         logger.error('ERR: product - create = ', error)
+        res.status(400).json({status : false , statusCode: 400 ,message: error})
+    }
+}
+
+export const updateProductController = async (req: Request , res: Response , next: NextFunction) => {
+    const {id} = req.params
+    const {error , value} = updateProductValidation(req.body)
+
+    if(error) {
+        logger.error('ERR: product - update = ', error.details[0].message)
+        res.status(400).json({status : false , statusCode: 400 ,message: error.details[0].message})
+    }
+
+    try {
+        await updateProductService(id , value)
+        logger.info("update product success")
+        res.status(200).json({status : true , statusCode: 200 ,message: "update product success" , data: value})
+    } catch (error) {
+        logger.error('ERR: product - update = ', error)
         res.status(400).json({status : false , statusCode: 400 ,message: error})
     }
 }
