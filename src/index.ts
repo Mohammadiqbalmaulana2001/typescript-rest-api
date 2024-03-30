@@ -5,6 +5,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 
 import './utils/connectDB'
+import deserializeToken from './middleware/deserializeToken';
 
 const app:Application = express();
 const port:Number = 4000
@@ -13,6 +14,7 @@ const port:Number = 4000
 app.use(express.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
+app.use(deserializeToken)
 
 // cors
 app.use(cors())
